@@ -8,7 +8,6 @@
       (>= mx py mn))
     false))
 
-
 (def validators {
                  "byr" (partial validate-year 1920 2002)
                  "iyr" (partial validate-year 2010 2020)
@@ -24,7 +23,6 @@
                  "pid" #(re-matches #"^\d{9}$" %)
                  "cid" (fn [_] true)
                  })
-
 
 (defn lines->passports [lines]
   (map (partial clojure.string/join " ")

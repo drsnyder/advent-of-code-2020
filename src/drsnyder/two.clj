@@ -23,7 +23,6 @@
         cc (password->char-count pw chr)]
      (<= mn cc mx)))
 
-
 (defn valid-password-part-two? [line]
   (let [{rule :rule pw :pw} (line->rule+password line)
         {mn :min mx :max chr :char} (parse-rule->map rule)

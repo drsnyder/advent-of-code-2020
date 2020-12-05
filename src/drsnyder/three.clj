@@ -21,7 +21,6 @@
   (let [width (compute-width data step-size)]
     (vec (map #(line->vector % width) data))))
 
-
 (defn steps->positions [height width step-right step-down]
   (let [down (range step-down height step-down)
         right (range step-right width step-right)]

@@ -1,7 +1,5 @@
 (ns drsnyder.one)
 
-
-
 (defn find-entries-set [report target-sum]
   (let [ss (into (sorted-set) report)]
     (first
@@ -22,7 +20,6 @@
                    (if-let [first-pair (find-entries-set report (- 2020 e))]
                      (conj first-pair e)))
                  (into (sorted-set) report)))))
-
 
 (defn verify [pair]
   (let [total (apply + pair)
