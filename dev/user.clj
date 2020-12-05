@@ -3,6 +3,9 @@
             [drsnyder.one :as one]
             [drsnyder.two :as two]))
 
+(defn load-df [n]
+  (clojure.string/split-lines (slurp (str "data/day-" n ".txt"))))
+
 (def day1
   (map #(Integer/parseInt %)
        (clojure.string/split-lines (slurp "data/day-1.txt"))))

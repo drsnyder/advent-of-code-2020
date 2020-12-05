@@ -16,7 +16,10 @@
       (nrepl-server/start-server :port nrepl-port
                                  :handler (nrepl-handler)))
     (println "Cider nREPL server started on port" nrepl-port)
-      (spit ".nrepl-port" nrepl-port))
+    (.addShutdownHook
+      (Runtime/getRuntime)
+      (Thread. (fn [] (println "Shutting down..."))))
+    (spit ".nrepl-port" nrepl-port))
 
 (defn stop-nrepl-server! []
     (when (not (nil? @nrepl-server))
