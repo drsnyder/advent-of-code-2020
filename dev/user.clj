@@ -1,7 +1,8 @@
 (ns user
   (:require [drsnyder.helpers :as h]
             [drsnyder.one :as one]
-            [drsnyder.two :as two]))
+            [drsnyder.two :as two]
+            [drsnyder.util.input :as input]))
 
 (defn load-df [n]
   (clojure.string/split-lines (slurp (str "data/day-" n ".txt"))))

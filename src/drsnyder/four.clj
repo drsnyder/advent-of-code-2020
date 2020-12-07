@@ -1,4 +1,5 @@
-(ns drsnyder.four)
+(ns drsnyder.four
+  (:require [drsnyder.util.input :refer [lines->records]]))
 
 (def required-fields #{"byr" "iyr" "eyr" "hgt" "hcl" "ecl" "pid" "cid"})
 
@@ -24,11 +25,6 @@
                  "cid" (fn [_] true)
                  })
 
-(defn lines->passports [lines]
-  (map (partial clojure.string/join " ")
-       (filter #(not (= % (list "")))
-               (partition-by #(= % "") lines))))
-
 (defn passport->map [pp]
   (into (hash-map)
         (map #(clojure.string/split % #":")
@@ -41,7 +37,7 @@
 
 ; 208
 (defn part-one-count [lines]
-  (let [pp (lines->passports lines)]
+  (let [pp (lines->records lines)]
     (count (filter true? (map valid-passport-fields? pp)))))
 
 (defn valid-passport-values? [pp]
@@ -55,5 +51,5 @@
 ; this isn't the most efficient. we should move the max extraction out of the
 ; validation methods
 (defn part-two-count [lines]
-  (let [pp (lines->passports lines)]
+  (let [pp (lines->records lines)]
     (count (filter valid-passport-values? (filter valid-passport-fields? pp)))))
