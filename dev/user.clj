@@ -2,7 +2,9 @@
   (:require [drsnyder.helpers :as h]
             [drsnyder.one :as one]
             [drsnyder.two :as two]
-            [drsnyder.util.input :as input]))
+            [drsnyder.util.input :as input]
+            [clojure.pprint :refer [pprint]]
+            ))
 
 (defn load-df [n]
   (clojure.string/split-lines (slurp (str "data/day-" n ".txt"))))
