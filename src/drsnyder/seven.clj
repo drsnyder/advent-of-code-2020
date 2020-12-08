@@ -5,8 +5,6 @@
     {:num (second parts)
      :bag (nth parts 2)}))
 
-; ^([\w\space]+) bags contain ((no other bags)|(\d+ \w+ \w+ bags?)+(, (\d+ \w+ \w+ bags?))+)\.$
-
 (defn parse-bag-line [line]
   (re-find #"^([\w\space]+) bags contain ((no other bags)|(\d+ \w+ \w+ bags?)+(:?, (\d+ \w+ \w+ bags?))*)\.$"
            line))
@@ -18,3 +16,53 @@
         contents (filter #(not (nil? %)) (take-nth 2 (drop 4 parts)))]
     {:bag bag
      :contents (map parse-content-rule contents)}))
+
+
+(defn rule->bags [rule]
+  (map #(:bag %) (:contents rule)))
+
+(defn can-carry? [bag rule]
+  ((set (rule->bags rule)) bag))
+
+(defn can-children-carry? [can-carry-set rule]
+  (clojure.set/intersection can-carry-set (set (rule->bags rule))))
+
+(defn lines->rules [lines]
+  (map parse-bag-rule lines))
+
+(defn find-direct-carry-bags [rules bag]
+  (filter (partial can-carry? bag) rules))
+
+(defn find-indirect-carry-bags [rules direct]
+  (filter (partial can-children-carry? direct) rules))
+
+(defn rule->bag-map [rules]
+  (into (hash-map)
+        (map (fn [rule]
+               [(:bag rule) (set (rule->bags rule))])
+             rules)))
+
+(defn fan-out [m bags]
+  (flatten (filter #(not (nil? %))
+                   (map seq (map #(get m %) bags)))))
+
+(defn all-bags-in-tree [m bag]
+  (loop [up-next (concat (fan-out m (get m bag)) (get m bag))
+         all-bags up-next]
+    (if (empty? up-next)
+      all-bags
+      (recur (concat (get m (first up-next))
+                     (rest up-next)
+                     (fan-out m (first up-next)))
+             (set (concat up-next all-bags))))))
+
+
+; 118 too low
+(defn part-one-bags [lines needle]
+  (let [rules (lines->rules lines)
+        m (rule->bag-map rules)
+        child-sets (filter #(not (empty? %))
+                           (map (partial all-bags-in-tree m) (keys m)))]
+    (count (filter #(% needle) child-sets))))
+
+
