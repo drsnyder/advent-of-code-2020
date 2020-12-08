@@ -79,26 +79,38 @@
                            (map seq (map #(get m %) bags)))))))
 
 (defn bag-contents->count [brm bag]
-  (reduce + (map #(Integer/parseInt %)
-                 (map :num (:contents (get brm bag))))))
+  (let [contents (:contents (get brm bag))]
+    (reduce + (map #(Integer/parseInt %)
+                   (map :num contents)))))
 
 (defn bag-contents->bags [brm bag]
   (map :bag (:contents (get brm bag))))
 
 (defn num-bags-in-tree [m brm bag]
   (loop [bags-to-traverse (deep-fan-out m bag)
-         total-nested-bags (bag-contents->count brm bag)]
+         total-nested-bags (* (bag-contents->count brm bag) (count bags-to-traverse))]
     (if (empty? bags-to-traverse)
       total-nested-bags
 
       (let [next-bag (first bags-to-traverse)
             next-bag-children (deep-fan-out m next-bag)
-            next-bag-total (bag-contents->count brm next-bag)]
+            next-bag-total (* (bag-contents->count brm next-bag) (count next-bag-children))]
 
         (recur (concat (rest bags-to-traverse) next-bag-children)
                (+ total-nested-bags next-bag-total))
-
         ))))
+
+; 600 is not right; subtract 1? try 599; 514?
+(defn num-bags-in-tree-r [bmr bag]
+  (let [children (:contents (get bmr bag))]
+    (if (empty? children)
+      0
+      (reduce +
+              (map (fn [child]
+                     (let [num-child (Integer/parseInt (:num child))]
+                       (+ num-child (* num-child (num-bags-in-tree-r bmr (:bag child))))))
+                   children)))))
+
 
 ;;;;
 
@@ -111,11 +123,9 @@
                            (map (partial all-bags-in-tree m) (keys m)))]
     (count (filter #(% needle) child-sets))))
 
-; 568 is too low
+; 568 is too low; 6006?
 (defn part-two-total-bags [lines needle]
   (let [rules (lines->rules lines)
         m (rule->bag-map rules)
-        brm (bag->rule-map rules)
-        children (all-bags-in-tree m needle)]
-    (reduce + (map (partial num-bags-in-tree m brm)
-                   (seq children)))))
+        brm (bag->rule-map rules)]
+    (num-bags-in-tree-r brm needle)))
