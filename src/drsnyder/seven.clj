@@ -43,6 +43,12 @@
                [(:bag rule) (set (rule->bags rule))])
              rules)))
 
+(defn bag->rule-map [rules]
+  (into (hash-map)
+        (map (fn [rule]
+               [(:bag rule) rule])
+             rules)))
+
 (defn fan-out [m bags]
   (flatten (filter #(not (nil? %))
                    (map seq (map #(get m %) bags)))))
@@ -57,11 +63,59 @@
                      (fan-out m (first up-next)))
              (set (concat up-next all-bags))))))
 
+(defn rule-contents->bag-count [brm bag]
+  (let [rule (get brm bag)
+        contents (:contents rule)]
+    (reduce + (map #(Integer/parseInt %) (map :num contents)))))
 
-; 118 too low
+
+
+;;;;;;;;
+
+(defn deep-fan-out [m bag]
+  (let [bags (get m bag)]
+    (concat bags (flatten
+                   (filter #(not (nil? %))
+                           (map seq (map #(get m %) bags)))))))
+
+(defn bag-contents->count [brm bag]
+  (reduce + (map #(Integer/parseInt %)
+                 (map :num (:contents (get brm bag))))))
+
+(defn bag-contents->bags [brm bag]
+  (map :bag (:contents (get brm bag))))
+
+(defn num-bags-in-tree [m brm bag]
+  (loop [bags-to-traverse (deep-fan-out m bag)
+         total-nested-bags (bag-contents->count brm bag)]
+    (if (empty? bags-to-traverse)
+      total-nested-bags
+
+      (let [next-bag (first bags-to-traverse)
+            next-bag-children (deep-fan-out m next-bag)
+            next-bag-total (bag-contents->count brm next-bag)]
+
+        (recur (concat (rest bags-to-traverse) next-bag-children)
+               (+ total-nested-bags next-bag-total))
+
+        ))))
+
+;;;;
+
+; 118 too low, 254 just right
 (defn part-one-bags [lines needle]
+  "(part-one bags day7 \"shiny gold\")"
   (let [rules (lines->rules lines)
         m (rule->bag-map rules)
         child-sets (filter #(not (empty? %))
                            (map (partial all-bags-in-tree m) (keys m)))]
     (count (filter #(% needle) child-sets))))
+
+; 568 is too low
+(defn part-two-total-bags [lines needle]
+  (let [rules (lines->rules lines)
+        m (rule->bag-map rules)
+        brm (bag->rule-map rules)
+        children (all-bags-in-tree m needle)]
+    (reduce + (map (partial num-bags-in-tree m brm)
+                   (seq children)))))
