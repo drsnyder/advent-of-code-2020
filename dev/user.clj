@@ -4,7 +4,7 @@
             [drsnyder.two :as two]
             [drsnyder.util.input :as input]
             [clojure.pprint :refer [pprint]]
-            ))
+            [clojure.math.combinatorics :as combo]))
 
 (defn load-df [n]
   (clojure.string/split-lines (slurp (str "data/day-" n ".txt"))))
