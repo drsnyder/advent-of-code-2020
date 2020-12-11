@@ -49,11 +49,12 @@
           ;(recur (concat head ()) nil [])))
     ;)))
 
-(defn find-chains [chains]
+(defn find-chains [chains prefix]
   (if (empty? chains)
-    nil
-    (for [chain chains]
-      (let [head (list (first chain))
-            next-paths (filter #(not (nil? %))
-                               (map (partial next-path-with-step chain) [1 2 3]))]
-        (find-chains next-paths)))))
+    prefix
+    (doall
+      (for [chain chains]
+        (let [head (first chain)
+              next-paths (filter #(not (nil? %))
+                                 (map (partial next-path-with-step chain) [1 2 3]))]
+          (find-chains next-paths (conj prefix head)))))))
