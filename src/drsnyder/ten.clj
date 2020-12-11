@@ -15,11 +15,6 @@
         adjacent (partition 2 1 chain)]
     (reduce * (vals (frequencies (map #(apply - (reverse %)) adjacent))))))
 
-(defn next-path-of-length [looking-at chain step]
-  (if (= (- (first chain) looking-at) step)
-    (rest chain)
-    nil))
-
 (defn next-path-with-step [chain step]
   (let [looking-at (first chain)
         next-path (drop-while (fn [adapter]
@@ -27,34 +22,37 @@
                               chain)]
     (if (empty? next-path)
       nil
-      next-path)))
+      [next-path step])))
 
-(defn find-next-paths-for-all-chains [chains steps]
-  (mapcat (fn [chain]
-               (filter #(not (nil? %))
-                       (map (partial next-path-with-step chain) steps)))
-             chains))
-
-;(defn find-chains [lines jolts]
-  ;(let [[adapters device chain] (setup-chain lines)]
-    ;(loop [head (list (first chain))
-           ;paths (set (list chain))
-           ;acc [chain]]
-
-      ;(if (empty? paths)
-        ;acc
-        ;(let [new-paths (map #(concat head %)
-                             ;(find-next-paths-for-all-chains (seq paths) jolts))]
-          ;(prn [head (clojure.set/union paths (set new-paths)) acc])
-          ;(recur (concat head ()) nil [])))
-    ;)))
-
-(defn find-chains [chains prefix]
+(defn find-chains-dfs [chains prefix]
   (if (empty? chains)
-    prefix
-    (doall
-      (for [chain chains]
-        (let [head (first chain)
-              next-paths (filter #(not (nil? %))
-                                 (map (partial next-path-with-step chain) [1 2 3]))]
-          (find-chains next-paths (conj prefix head)))))))
+    [prefix]
+    (mapcat (fn [chain]
+           (let [head (first chain)
+                 next-paths (map first
+                                 (filter #(not (nil? %))
+                                         (map (partial next-path-with-step chain) [1 2 3])))]
+             (find-chains-dfs next-paths (conj prefix head))))
+         chains)))
+
+(defn find-chains-iter [chain]
+  (loop [chain-left chain
+         list-of-branches []]
+    (if (empty? chain-left)
+      (pop list-of-branches)
+      (let [next-paths (map second
+                            (filter #(not (nil? %))
+                               (map (partial next-path-with-step chain-left) [1 2 3])))
+            max-step (if (empty? next-paths) 1 (apply max next-paths))]
+        (recur (rest chain-left) (conj list-of-branches (count next-paths)))))))
+
+; exhausts the heap
+(defn part-two-dfs [lines]
+  (let [[_ _ chain] (setup-chain lines)]
+    (count (find-chains-dfs [chain] []))))
+
+(defn part-two-iter [lines]
+  (let [[_ _ chain] (setup-chain lines)
+        results (find-chains-iter chain)]
+    (prn results)
+    (partition-by identity results)))
