@@ -46,6 +46,9 @@
             max-step (if (empty? next-paths) 1 (apply max next-paths))]
         (recur (rest chain-left) (conj list-of-branches (count next-paths)))))))
 
+(defn get-start-pos [chain n]
+  (.indexOf chain n))
+
 ; exhausts the heap
 (defn part-two-dfs [lines]
   (let [[_ _ chain] (setup-chain lines)]
@@ -56,3 +59,19 @@
         results (find-chains-iter chain)]
     (prn results)
     (partition-by identity results)))
+
+(defn part-two-iter-2 [lines]
+  (let [[_ device chain] (setup-chain lines)]
+    (loop [pos [(first chain)]
+           finished 0]
+      (if (empty? pos)
+        finished
+        (let [new-pos (map first
+                           (filter #(not (nil? %))
+                                   (mapcat (fn [p]
+                                             (let [s (drop (get-start-pos chain p) chain)]
+                                               (map (comp first (partial next-path-with-step s)) [1 2 3])))
+                                           pos)))
+              new-finished (+ finished (count (filter #(= % device) new-pos)))
+              next-round (filter #(not= % device) new-pos)]
+          (recur next-round new-finished))))))
