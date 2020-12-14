@@ -95,7 +95,6 @@
   (let [[_ _ chain] (setup-chain lines)
         counts (vec (concat (list 1) (take (last chain) (cycle (list 0)))))]
     (last (reduce (fn [v pos]
-                    (prn v)
                     (assoc v pos (+ (get-vec-pos v (- pos 3))
                                     (get-vec-pos v (- pos 2))
                                     (get-vec-pos v (- pos 1)))))
