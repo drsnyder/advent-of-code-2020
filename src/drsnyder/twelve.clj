@@ -23,6 +23,7 @@
     (nth cards idx)))
 
 
+
 (defn change-direction [state facing direction units]
   (assoc-in state [:facing] (rotate-to facing direction units)))
 
@@ -55,8 +56,51 @@
           [(+ (Math/abs x) (Math/abs y)) state])
         (let [{inst :inst units :units} (first cmds)]
           (recur (rest cmds) (move state inst units)))
-        )
-      )
-    )
-  )
+        ))))
+
+(def start-state-2 {
+                     :ship {:x 0 :y 0}
+                     :waypoint {:x 10 :y 1}
+                     })
+
+(defn rotate-waypoint [state direction degrees]
+  (if (= 0 degrees)
+    state
+    (let [waypoint (:waypoint state)]
+      (condp = direction
+      "L" (recur (assoc-in state [:waypoint] {:x (* -1 (:y waypoint)) :y (:x waypoint)})
+                 direction
+                 (- degrees 90))
+      "R" (recur (assoc-in state [:waypoint] {:x (:y waypoint) :y (* -1 (:x waypoint))})
+                 direction
+                 (- degrees 90))
+      state))))
+
+(defn move-ship->waypoint [state units]
+  (let [ship (:ship state)
+        wp (:waypoint state)
+        move-x (+ (:x ship) (* units (:x wp)))
+        move-y (+ (:y ship) (* units (:y wp)))]
+    (merge state {:ship {:x move-x :y move-y}})))
+
+(defn move-waypoint [state direction units]
+  (let [](condp = direction
+    "N" (update-in state [:waypoint :y] + units)
+    "S" (update-in state [:waypoint :y] - units)
+    "E" (update-in state [:waypoint :x] + units)
+    "W" (update-in state [:waypoint :x] - units)
+    )))
+
+(defn part-two [lines]
+  (let [insts (map line->inst lines)]
+    (loop [cmds insts
+           state start-state-2]
+      (if (empty? cmds)
+        (let [{{x :x y :y} :ship} state]
+          [(+ (Math/abs x) (Math/abs y)) state])
+        (let [{inst :inst units :units} (first cmds)]
+          (cond
+            (#{"L" "R"} inst) (recur (rest cmds) (rotate-waypoint state inst units))
+            (= "F" inst) (recur (rest cmds) (move-ship->waypoint state units))
+            :else (recur (rest cmds) (move-waypoint state inst units))))))))
 
